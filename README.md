@@ -18,12 +18,13 @@
 
 ## Быстрый запуск
 ```bash
-cd backend
-cp .env.example .env
-npm install
-npm start
+cp backend/.env.example backend/.env
+npm --prefix backend install
+npm --prefix backend start
 ```
 Откройте `http://localhost:3000`.
+
+> Сервер теперь корректно запускается из **любой** рабочей директории (пути к `www/` и `backend/data.json` больше не зависят от `cwd`).
 
 ## Настройка под Telegram App Center
 1. Разверните приложение на HTTPS-домене.
@@ -36,3 +37,10 @@ npm start
   Для production обязательно добавить независимую on-chain верификацию через TON API/индексер.
 - Хранение в `backend/data.json` нужно заменить на PostgreSQL/Redis.
 - Добавить rate-limits, device fingerprinting, антифрод и аудит-логи.
+
+
+## Если `npm install` не проходит
+В некоторых закрытых окружениях npm registry может быть заблокирован (ошибка `E403`).
+В таком случае:
+1. Разрешите доступ к `https://registry.npmjs.org` или настройте внутренний npm mirror.
+2. Либо выполните установку зависимостей в CI/CD с доступом в интернет и задеплойте артефакт.

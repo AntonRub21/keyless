@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -10,6 +11,10 @@ import SteamUser from 'steam-user';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -21,7 +26,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 app.use(cors());
 app.use(express.json());
 
-const DB_PATH = path.resolve(process.cwd(), 'backend/data.json');
+const DB_PATH = path.resolve(__dirname, 'data.json');
 const CASES = [
   {
     id: 'budget',
@@ -301,9 +306,9 @@ app.post('/api/admin/credit', requireAdmin, (req, res) => {
   res.json({ ok: true, balanceNanoTon: user.balanceNanoTon });
 });
 
-app.use(express.static(path.resolve(process.cwd(), 'www')));
-app.get('/admin', (_req, res) => res.sendFile(path.resolve(process.cwd(), 'www/admin.html')));
-app.get('*', (_req, res) => res.sendFile(path.resolve(process.cwd(), 'www/index.html')));
+app.use(express.static(path.resolve(ROOT_DIR, 'www')));
+app.get('/admin', (_req, res) => res.sendFile(path.resolve(ROOT_DIR, 'www/admin.html')));
+app.get('*', (_req, res) => res.sendFile(path.resolve(ROOT_DIR, 'www/index.html')));
 
 app.listen(PORT, () => {
   console.log(`CaseRush server is running at ${PUBLIC_URL}`);
