@@ -122,7 +122,7 @@ if (!countCases) {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     for (const c of seedCases) {
       insertCase.run(c.id, c.title, c.priceNanoTon, now, now);
       c.pool.forEach((item, index) => {
@@ -130,10 +130,20 @@ if (!countCases) {
       });
     }
   });
-  tx();
 }
 
 const SKIN_ASSET_MAP = process.env.SKIN_ASSET_MAP ? JSON.parse(process.env.SKIN_ASSET_MAP) : {};
+
+function runInTransaction(callback) {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    callback();
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
 
 function verifyTelegramInitData(initData) {
   if (!TELEGRAM_BOT_TOKEN || !initData) return false;
@@ -293,13 +303,12 @@ app.post('/api/topup/confirm', requireTelegramUser, (req, res) => {
   if (existing) return res.status(409).json({ error: 'Deposit already processed' });
 
   ensureUser(req.tgUserId);
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('UPDATE users SET balance_nano_ton = balance_nano_ton + ?, updated_at = ? WHERE tg_user_id = ?')
       .run(amount, Date.now(), req.tgUserId);
     db.prepare('INSERT INTO deposits (tx_hash, tg_user_id, amount_nano_ton, confirmed_at, chain) VALUES (?, ?, ?, ?, ?)')
       .run(txHash, req.tgUserId, amount, Date.now(), 'TON');
   });
-  tx();
 
   const updated = db.prepare('SELECT balance_nano_ton FROM users WHERE tg_user_id = ?').get(req.tgUserId);
   res.json({ ok: true, balanceNanoTon: updated.balance_nano_ton });
@@ -327,13 +336,12 @@ app.post('/api/cases/open', requireTelegramUser, (req, res) => {
     createdAt: Date.now()
   };
 
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('UPDATE users SET balance_nano_ton = balance_nano_ton - ?, updated_at = ? WHERE tg_user_id = ?')
       .run(gameCase.priceNanoTon, Date.now(), req.tgUserId);
     db.prepare('INSERT INTO inventory_items (id, tg_user_id, name, rarity, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(item.id, req.tgUserId, item.name, item.rarity, item.status, item.createdAt);
   });
-  tx();
 
   const balance = db.prepare('SELECT balance_nano_ton FROM users WHERE tg_user_id = ?').get(req.tgUserId);
   res.json({ item, balanceNanoTon: balance.balance_nano_ton, inventory: getInventory(req.tgUserId) });
@@ -357,14 +365,13 @@ app.post('/api/withdraw', requireTelegramUser, (req, res) => {
   offer.send((err, status) => {
     if (err) return res.status(500).json({ error: `Steam offer error: ${err.message}` });
 
-    const tx = db.transaction(() => {
+    runInTransaction(() => {
       db.prepare('DELETE FROM inventory_items WHERE id = ?').run(itemId);
       db.prepare('UPDATE users SET steam_trade_link = ?, updated_at = ? WHERE tg_user_id = ?')
         .run(tradeUrl, Date.now(), req.tgUserId);
       db.prepare('INSERT INTO withdrawals (id, tg_user_id, item_name, item_rarity, steam_status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
         .run(crypto.randomUUID(), req.tgUserId, item.name, item.rarity, String(status), Date.now());
     });
-    tx();
 
     return res.json({ ok: true, steamStatus: status, inventory: getInventory(req.tgUserId) });
   });
@@ -412,7 +419,7 @@ app.post('/api/admin/cases', requireAdmin, (req, res) => {
   if (exists) return res.status(409).json({ error: 'Case id already exists' });
 
   const now = Date.now();
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('INSERT INTO cases (id, title, price_nano_ton, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(req.body.id, req.body.title, Number(req.body.priceNanoTon), req.body.isActive === false ? 0 : 1, now, now);
 
@@ -421,7 +428,6 @@ app.post('/api/admin/cases', requireAdmin, (req, res) => {
         .run(req.body.id, item.name, item.rarity, Number(item.chance), index);
     });
   });
-  tx();
 
   res.json({ ok: true, cases: getCases(false) });
 });
@@ -434,7 +440,7 @@ app.put('/api/admin/cases/:id', requireAdmin, (req, res) => {
   const exists = db.prepare('SELECT id FROM cases WHERE id = ?').get(caseId);
   if (!exists) return res.status(404).json({ error: 'Case not found' });
 
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('UPDATE cases SET title = ?, price_nano_ton = ?, is_active = ?, updated_at = ? WHERE id = ?')
       .run(req.body.title, Number(req.body.priceNanoTon), req.body.isActive === false ? 0 : 1, Date.now(), caseId);
     db.prepare('DELETE FROM case_pool_items WHERE case_id = ?').run(caseId);
@@ -444,7 +450,6 @@ app.put('/api/admin/cases/:id', requireAdmin, (req, res) => {
         .run(caseId, item.name, item.rarity, Number(item.chance), index);
     });
   });
-  tx();
 
   res.json({ ok: true, cases: getCases(false) });
 });
@@ -456,11 +461,10 @@ app.delete('/api/admin/cases/:id', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Нельзя удалить кейс: в инвентарях есть связанные предметы' });
   }
 
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('DELETE FROM case_pool_items WHERE case_id = ?').run(caseId);
     db.prepare('DELETE FROM cases WHERE id = ?').run(caseId);
   });
-  tx();
 
   res.json({ ok: true, cases: getCases(false) });
 });
@@ -472,13 +476,12 @@ app.post('/api/admin/credit', requireAdmin, (req, res) => {
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'amountNanoTon must be positive' });
 
   ensureUser(String(tgUserId));
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     db.prepare('UPDATE users SET balance_nano_ton = balance_nano_ton + ?, updated_at = ? WHERE tg_user_id = ?')
       .run(amount, Date.now(), String(tgUserId));
     db.prepare('INSERT INTO deposits (tx_hash, tg_user_id, amount_nano_ton, confirmed_at, chain) VALUES (?, ?, ?, ?, ?)')
       .run(`admin-credit-${crypto.randomUUID()}`, String(tgUserId), amount, Date.now(), 'TON');
   });
-  tx();
 
   const user = db.prepare('SELECT balance_nano_ton FROM users WHERE tg_user_id = ?').get(String(tgUserId));
   res.json({ ok: true, balanceNanoTon: user.balance_nano_ton });
