@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CaseRush Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">CaseRush</p>
+        <h1>Админ-панель</h1>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Авторизация</h2>
+      <input id="adminToken" type="password" placeholder="ADMIN_TOKEN" />
+      <button id="loadOverview" class="primary">Загрузить статистику</button>
+    </section>
+
+    <section class="panel">
+      <h2>Начислить TON пользователю</h2>
+      <input id="creditUserId" placeholder="tgUserId" />
+      <input id="creditAmount" placeholder="amountNanoTon" />
+      <button id="creditBtn" class="primary">Начислить</button>
+    </section>
+
+    <section class="panel">
+      <h2>Сводка</h2>
+      <pre id="overview"></pre>
+    </section>
+  </main>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
