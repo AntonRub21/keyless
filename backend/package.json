@@ -1,0 +1,19 @@
+{
+  "name": "caserush-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "steam-tradeoffer-manager": "^2.12.1",
+    "steam-user": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CaseRush Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">CaseRush Control Center</p>
+        <h1>Админ-панель</h1>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Авторизация</h2>
+      <input id="adminToken" type="password" placeholder="ADMIN_TOKEN" />
+      <button id="loadOverview" class="primary">Обновить дашборд</button>
+    </section>
+
+    <section class="panel">
+      <h2>Финансы пользователей</h2>
+      <div class="quick-topup">
+        <input id="creditUserId" placeholder="tgUserId" />
+        <input id="creditAmount" placeholder="amountNanoTon" />
+        <button id="creditBtn" class="primary">Начислить</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Управление кейсами</h2>
+      <p class="hint">Pool JSON формат: массив объектов `name`, `rarity`, `chance` (сумма chance должна быть = 1).</p>
+      <div class="quick-topup">
+        <input id="caseId" placeholder="id (например elite)" />
+        <input id="caseTitle" placeholder="title" />
+      </div>
+      <div class="quick-topup">
+        <input id="casePrice" placeholder="priceNanoTon" />
+        <label style="display:flex; align-items:center; gap:6px;"><input id="caseActive" type="checkbox" checked /> active</label>
+      </div>
+      <textarea id="casePool" rows="6" style="width:100%; background:#0f1830; color:#fff; border:1px solid #32497e; border-radius:10px; padding:10px;" placeholder='[{"name":"AK-47 | Redline","rarity":"Classified","chance":0.7},{"name":"★ Bayonet | Fade","rarity":"Knife","chance":0.3}]'></textarea>
+      <div class="quick-topup">
+        <button id="createCase" class="primary">Создать кейс</button>
+        <button id="updateCase">Обновить выбранный</button>
+        <button id="deleteCase">Удалить выбранный</button>
+      </div>
+      <pre id="casesList"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>Дашборд</h2>
+      <pre id="overview"></pre>
+    </section>
+  </main>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
