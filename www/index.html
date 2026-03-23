@@ -1,91 +1,69 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-	<title>New project</title>
-	
-	<!-- Allow fullscreen mode on iOS devices. (These are Apple specific meta tags.) -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-	<link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
-	<meta name="HandheldFriendly" content="true" />
-	
-	<!-- Chrome for Android web app tags -->
-	<meta name="mobile-web-app-capable" content="yes" />
-	<link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CaseRush CS2 — Telegram App Center</title>
+  <meta name="theme-color" content="#0d1321" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/@telegram-apps/analytics@latest/dist/index.umd.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Telegram App Center / TON only</p>
+        <h1>CaseRush CS2</h1>
+      </div>
+      <div class="balance">
+        <p>Баланс</p>
+        <strong id="tonBalance">0 TON</strong>
+      </div>
+    </header>
 
-    <!-- All margins and padding must be zero for the canvas to fill the screen. -->
-	<style type="text/css">
-		* {
-			padding: 0;
-			margin: 0;
-		}
-		html, body {
-			background: #000;
-			color: #fff;
-			overflow: hidden;
-			touch-action: none;
-			-ms-touch-action: none;
-		}
-		canvas {
-			touch-action-delay: none;
-			touch-action: none;
-			-ms-touch-action: none;
-		}
-    </style>
-	
+    <section class="panel">
+      <h2>Кошелёк TON Connect</h2>
+      <div id="ton-connect" class="ton-connect"></div>
+      <p class="hint">Приложение использует только TON blockchain и оплату через TON Connect.</p>
+      <div class="quick-topup">
+        <button data-ton="0.3">+0.3 TON</button>
+        <button data-ton="1">+1 TON</button>
+        <button data-ton="3">+3 TON</button>
+      </div>
+      <button id="buyTon" class="primary">Пополнить через TON Connect</button>
+    </section>
 
-</head> 
- 
-<body> 
-	<div id="fb-root"></div>
-	
-	<div id="c2canvasdiv">
-		<!-- The canvas the project will render to.  If you change its ID, don't forget to change the
-		ID the runtime looks for in the jQuery events above (ready() and cr_sizeCanvas()). -->
-		<canvas id="c2canvas" width="320" height="180">
-			<!-- This text is displayed if the visitor's browser does not support HTML5.
-			You can change it, but it is a good idea to link to a description of a browser
-			and provide some links to download some popular HTML5-compatible browsers. -->
-			<h1>Your browser does not appear to support HTML5.  Try upgrading your browser to the latest version.  <a href="http://www.whatbrowser.org">What is a browser?</a>
-			<br/><br/><a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Microsoft Internet Explorer</a><br/>
-			<a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a><br/>
-			<a href="http://www.google.com/chrome/">Google Chrome</a><br/>
-			<a href="http://www.apple.com/safari/download/">Apple Safari</a></h1>
-		</canvas>
-	</div>
-	
-	<!-- Construct 2 exported games require jQuery. -->
-	<script src="jquery-3.4.1.min.js"></script>
+    <section class="panel">
+      <h2>Кейсы CS2</h2>
+      <div class="cases" id="cases"></div>
+    </section>
 
+    <section class="panel">
+      <h2>Инвентарь</h2>
+      <div id="inventory" class="inventory empty">Пока нет дропов — открой кейс 👀</div>
+    </section>
 
+    <section class="panel">
+      <h2>Вывод скина в Steam</h2>
+      <label for="steamTradeLink">Trade URL</label>
+      <input id="steamTradeLink" type="url" placeholder="https://steamcommunity.com/tradeoffer/new/?partner=..." />
+      <button id="withdraw" class="primary">Отправить выбранный скин</button>
+      <p class="hint">Отправка выполняется сервером через Steam API после выбора предмета.</p>
+    </section>
 
-	<script src="cordova.js"></script>
-	
-    <!-- The runtime script.  You can rename it, but don't forget to rename the reference here as well.
-    This file will have been minified and obfuscated if you enabled "Minify script" during export. -->
-	<script src="c2runtime.js"></script>
+    <section class="panel compact">
+      <h2>Админ-панель</h2>
+      <p class="hint">Для модерации и аналитики откройте <a href="/admin.html">/admin.html</a>.</p>
+    </section>
+  </main>
 
-    <script>
-		document.addEventListener("deviceready", function ()
-		{
-			window["c2iscordova"] = true;
-			
-			// Create new runtime using the c2canvas
-			cr_createRuntime("c2canvas");
-			
-			document.addEventListener("pause", function() {
-				cr_setSuspended(true);
-			}, false);
-			
-			document.addEventListener("resume", function() {
-				cr_setSuspended(false);
-			}, false);
-			
-		}, false);
-	
-    </script>
-</body> 
-</html> 
+  <dialog id="dropDialog">
+    <p id="dropText"></p>
+    <button id="closeDialog" class="primary">Забрать в инвентарь</button>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
